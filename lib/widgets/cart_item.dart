@@ -30,6 +30,28 @@ class CartItem extends StatelessWidget {
         ),
       ),
       direction: DismissDirection.endToStart,
+      confirmDismiss: (direction) {
+        return showDialog(
+          context: context,
+          builder: (ctx) {
+            return AlertDialog(
+              title: Text('Are you sure?'),
+              content: Text('Do you want to remove the item from the cart?'),
+              actions: <Widget>[
+                FlatButton(
+                  child: Text('No'),
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                ),                
+                FlatButton(
+                  child: Text('Yes'),
+                  onPressed: () => Navigator.of(ctx).pop(true),
+                ),
+
+              ],
+            );
+          }
+        );
+      },
       onDismissed: (direction) {
         cart.removeItem(productId);
       },
@@ -49,8 +71,8 @@ class CartItem extends StatelessWidget {
             ),
           ),
           title: Text('$title'),
-          subtitle: Text('Quantity: $quantity'),
-          trailing: Text('${(price * quantity).toStringAsFixed(2)}'),
+          subtitle: Text('\$${(price * quantity).toStringAsFixed(2)}'),
+          trailing: Text('x$quantity'),
         ),
       ),
     );

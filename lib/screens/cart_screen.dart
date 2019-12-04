@@ -5,9 +5,14 @@ import '../widgets/cart_item.dart' as ci;
 import '../providers/cart.dart';
 import '../providers/orders.dart';
 
-class CartScreen extends StatelessWidget {
+class CartScreen extends StatefulWidget {
   static const routeName = '/cart';
 
+  @override
+  _CartScreenState createState() => _CartScreenState();
+}
+
+class _CartScreenState extends State<CartScreen> {
   @override
   Widget build(BuildContext context) {
     final cart = Provider.of<Cart>(context);
@@ -41,15 +46,7 @@ class CartScreen extends StatelessWidget {
                     ),
                     backgroundColor: Theme.of(context).backgroundColor,
                   ),
-                  FlatButton(
-                    child: Text('Order Now'),
-                    onPressed: () {
-                      final orders = Provider.of<Orders>(context, listen: false);
-                      orders.addOrder(cart.items.values.toList(), cart.amount);
-                      cart.clearCart();
-                    },
-                    textColor: Theme.of(context).primaryColor,
-                  )
+                  OrderButton(cart: cart)
                 ],
               ),
             ),
@@ -72,5 +69,51 @@ class CartScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class OrderButton extends StatefulWidget {
+  const OrderButton({
+    Key key,
+    @required this.cart,
+  }) : super(key: key);
+
+  final Cart cart;
+
+  @override
+  _OrderButtonState createState() => _OrderButtonState();
+}
+
+class _OrderButtonState extends State<OrderButton> {
+  bool _isLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return _isLoading
+        ? Padding(
+            padding: EdgeInsets.all(10),
+            child: CircularProgressIndicator(),
+          )
+        : FlatButton(
+            child: Text('Order Now'),
+            onPressed: (widget.cart.amount == 0 || _isLoading)
+                ? null
+                : () {
+                    setState(() {
+                      _isLoading = true;
+                    });
+                    final orders = Provider.of<Orders>(context, listen: false);
+                    orders
+                        .addOrder(widget.cart.items.values.toList(),
+                            widget.cart.amount)
+                        .then((_) {
+                      setState(() {
+                        _isLoading = false;
+                      });
+                      widget.cart.clearCart();
+                    });
+                  },
+            textColor: Theme.of(context).primaryColor,
+          );
   }
 }
