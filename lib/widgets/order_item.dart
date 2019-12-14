@@ -15,7 +15,7 @@ class OrderItem extends StatefulWidget {
 }
 
 class _OrderItemState extends State<OrderItem> {
-  var _isExpanded = false;
+  var _expanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -24,47 +24,47 @@ class _OrderItemState extends State<OrderItem> {
       child: Column(
         children: <Widget>[
           ListTile(
-            title: Text('\$${widget.order.amount.toStringAsFixed(2)}'),
+            title: Text('\$${widget.order.amount}'),
             subtitle: Text(
-              DateFormat('dd-MMM-yyyy hh:mm a').format(widget.order.time),
+              DateFormat('dd/MM/yyyy hh:mm').format(widget.order.dateTime),
             ),
             trailing: IconButton(
-              icon: _isExpanded
-                  ? Icon(Icons.expand_less)
-                  : Icon(Icons.expand_more),
+              icon: Icon(_expanded ? Icons.expand_less : Icons.expand_more),
               onPressed: () {
                 setState(() {
-                  _isExpanded = !_isExpanded;
+                  _expanded = !_expanded;
                 });
               },
             ),
           ),
-          if (_isExpanded)
+          if (_expanded)
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10,),
-              height: min(widget.order.products.length * 20.0 + 25.0, 180),
+              padding: EdgeInsets.symmetric(horizontal: 15, vertical: 4),
+              height: min(widget.order.products.length * 20.0 + 10, 100),
               child: ListView(
-                children: widget.order.products.map((product) {
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Text(
-                        product.title,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        '${product.quantity}  \$${product.price}',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.grey,
-                        ),
-                      )
-                    ],
-                  );
-                }).toList(),
+                children: widget.order.products
+                    .map(
+                      (prod) => Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: <Widget>[
+                              Text(
+                                prod.title,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                '${prod.quantity}x \$${prod.price}',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.grey,
+                                ),
+                              )
+                            ],
+                          ),
+                    )
+                    .toList(),
               ),
             )
         ],

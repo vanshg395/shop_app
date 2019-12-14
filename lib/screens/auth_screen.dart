@@ -14,7 +14,10 @@ class AuthScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final deviceSize = MediaQuery.of(context).size;
+    // final transformConfig = Matrix4.rotationZ(-8 * pi / 180);
+    // transformConfig.translate(-10.0);
     return Scaffold(
+      // resizeToAvoidBottomInset: false,
       body: Stack(
         children: <Widget>[
           Container(
@@ -45,6 +48,7 @@ class AuthScreen extends StatelessWidget {
                           EdgeInsets.symmetric(vertical: 8.0, horizontal: 94.0),
                       transform: Matrix4.rotationZ(-8 * pi / 180)
                         ..translate(-10.0),
+                      // ..translate(-10.0),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(20),
                         color: Colors.deepOrange.shade900,
@@ -91,29 +95,31 @@ class AuthCard extends StatefulWidget {
 }
 
 class _AuthCardState extends State<AuthCard> {
-
   final GlobalKey<FormState> _formKey = GlobalKey();
   AuthMode _authMode = AuthMode.Login;
-  var _isLoading = false;
-  final _passwordController = TextEditingController();
   Map<String, String> _authData = {
     'email': '',
     'password': '',
   };
+  var _isLoading = false;
+  final _passwordController = TextEditingController();
 
-  void _showErrorDialog(String errorMessage) {
+  void _showErrorDialog(String message) {
     showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-              title: Text('Authentication Failed'),
-              content: Text(errorMessage),
-              actions: <Widget>[
-                FlatButton(
-                  child: Text('Ok'),
-                  onPressed: () => Navigator.of(ctx).pop(),
-                )
-              ],
-            ));
+      context: context,
+      builder: (ctx) => AlertDialog(
+            title: Text('An Error Occurred!'),
+            content: Text(message),
+            actions: <Widget>[
+              FlatButton(
+                child: Text('Okay'),
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                },
+              )
+            ],
+          ),
+    );
   }
 
   Future<void> _submit() async {
@@ -127,57 +133,30 @@ class _AuthCardState extends State<AuthCard> {
     });
     try {
       if (_authMode == AuthMode.Login) {
-        await Provider.of<Auth>(context, listen: false).signIn(
+        // Log user in
+        await Provider.of<Auth>(context, listen: false).login(
           _authData['email'],
           _authData['password'],
-        );
-        showDialog(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: Text('Success'),
-            content: Text('You are successfully logged in.'),
-            actions: <Widget>[
-              FlatButton(
-                child: Text('Ok'),
-                onPressed: () => Navigator.of(ctx).pop(),
-              ),
-            ],
-          ),
         );
       } else {
-        await Provider.of<Auth>(context, listen: false).signUp(
+        // Sign user up
+        await Provider.of<Auth>(context, listen: false).signup(
           _authData['email'],
           _authData['password'],
         );
-        await showDialog(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: Text('Success'),
-            content: Text('You are successfully registered.'),
-            actions: <Widget>[
-              FlatButton(
-                child: Text('Ok'),
-                onPressed: () => Navigator.of(ctx).pop(),
-              ),
-            ],
-          ),
-        );
-        setState(() {
-          _authMode = AuthMode.Login;
-        });
       }
     } on HttpException catch (error) {
-      var errorMessage = 'There was a problem authenticating the user.';
+      var errorMessage = 'Authentication failed';
       if (error.toString().contains('EMAIL_EXISTS')) {
-        errorMessage = 'This email address already exists.';
+        errorMessage = 'This email address is already in use.';
       } else if (error.toString().contains('INVALID_EMAIL')) {
-        errorMessage = 'This email address is not valid.';
+        errorMessage = 'This is not a valid email address';
       } else if (error.toString().contains('WEAK_PASSWORD')) {
         errorMessage = 'This password is too weak.';
       } else if (error.toString().contains('EMAIL_NOT_FOUND')) {
-        errorMessage = 'This email could not be found.';
+        errorMessage = 'Could not find a user with that email.';
       } else if (error.toString().contains('INVALID_PASSWORD')) {
-        errorMessage = 'Invalid Password.';
+        errorMessage = 'Invalid password.';
       }
       _showErrorDialog(errorMessage);
     } catch (error) {
