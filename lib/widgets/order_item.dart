@@ -14,8 +14,32 @@ class OrderItem extends StatefulWidget {
   _OrderItemState createState() => _OrderItemState();
 }
 
-class _OrderItemState extends State<OrderItem> {
+class _OrderItemState extends State<OrderItem>
+    with SingleTickerProviderStateMixin {
   var _expanded = false;
+
+  AnimationController _animController;
+  Animation<double> _opacityAnim;
+  Animation<Offset> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _animController = AnimationController(
+      vsync: this,
+      duration: Duration(
+        milliseconds: 400,
+      ),
+    );
+
+    _opacityAnim = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(
+        parent: _animController,
+        curve: Curves.easeInCubic,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,42 +55,51 @@ class _OrderItemState extends State<OrderItem> {
             trailing: IconButton(
               icon: Icon(_expanded ? Icons.expand_less : Icons.expand_more),
               onPressed: () {
+                _expanded
+                    ? _animController.reverse()
+                    : _animController.forward();
                 setState(() {
                   _expanded = !_expanded;
                 });
               },
             ),
           ),
-          if (_expanded)
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 15, vertical: 4),
-              height: min(widget.order.products.length * 20.0 + 10, 100),
+          // if (_expanded)
+          AnimatedContainer(
+            duration: Duration(milliseconds: 200),
+            padding: EdgeInsets.symmetric(horizontal: 15, vertical: 4),
+            height: _expanded
+                ? min(widget.order.products.length * 20.0 + 20, 100)
+                : 0,
+            child: FadeTransition(
+              opacity: _opacityAnim,
               child: ListView(
                 children: widget.order.products
                     .map(
                       (prod) => Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: <Widget>[
-                              Text(
-                                prod.title,
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                '${prod.quantity}x \$${prod.price}',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.grey,
-                                ),
-                              )
-                            ],
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Text(
+                            prod.title,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
+                          Text(
+                            '${prod.quantity}x \$${prod.price}',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.grey,
+                            ),
+                          )
+                        ],
+                      ),
                     )
                     .toList(),
               ),
-            )
+            ),
+          )
         ],
       ),
     );
